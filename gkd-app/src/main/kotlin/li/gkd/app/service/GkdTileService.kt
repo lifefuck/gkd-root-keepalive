@@ -62,6 +62,12 @@ private suspend fun switchA11yService() {
         A11yService.instance?.disableSelf()
     } else {
         if (!PermissionStates.writeSecureSettings.updateAndGet()) {
+            // 尝试通过 Root 静默授予写入安全设置权限
+            if (li.gkd.app.util.RootUtils.isRootAvailable()) {
+                li.gkd.app.util.RootUtils.grantPermissionsSilently(app.packageName)
+                li.gkd.app.util.RootUtils.applyOomProtection()
+                PermissionStates.writeSecureSettings.refresh()
+            }
             if (!PermissionStates.writeSecureSettings.value) {
                 toast("请先授予「写入安全设置权限」")
                 return

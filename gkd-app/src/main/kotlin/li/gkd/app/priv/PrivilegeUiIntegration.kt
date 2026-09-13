@@ -37,6 +37,7 @@ val privilegeServiceStatusFlow by lazy {
 val gkdPrivilegeUiConfig: PrivilegeUiConfig by lazy {
     PrivilegeUiConfig(
         externalStartProviders = listOf(
+            li.gkd.app.priv.root.GkdRootExternalStartProvider,
             GkdShizukuExternalStartProvider,
         ),
     )

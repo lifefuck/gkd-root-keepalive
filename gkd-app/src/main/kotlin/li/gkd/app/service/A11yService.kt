@@ -184,6 +184,12 @@ abstract class A11yService : AccessibilityService(), A11yCommonImpl {
         attachKeepAliveOverlay()
         connected = true
         toast("无障碍已启动")
+        // 核心保活：如果具备 Root 权限，自动为当前 App 申请 OOM -1000 内核级保护，彻底防止被系统 LowMemoryKiller 查杀
+        appScope.launch {
+            if (li.gkd.app.util.RootUtils.isRootAvailable()) {
+                li.gkd.app.util.RootUtils.applyOomProtection()
+            }
+        }
         if (currentAppUseA11y) {
             A11yRuntime.onA11yConnected(this)
         }
