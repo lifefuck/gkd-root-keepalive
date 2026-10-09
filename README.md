@@ -3,7 +3,7 @@
 > **本项目为 GKD 官方项目 (gkd-kit/gkd) 的深度保活定制分支**  
 > **分支维护者**：life  
 > **基座版本**：GKD 官方最新发行版 v1.12.1  
-> **下载地址**：可在本仓库的 [Releases 页面](https://github.com/lifefuck/gkd/releases) 直接下载打包完成的 APK 安装包（**`v1.12.1-keepalive`**）。
+> **下载地址**：可在本仓库的 [Releases 页面](https://github.com/lifefuck/gkd-root-keepalive/releases) 直接下载打包完成的 APK 安装包（**`v1.12.1-keepalive`**）。
 
 ---
 
@@ -41,7 +41,7 @@
 
 ## 📦 下载与安装
 
-请前往 [Releases 页面](https://github.com/lifefuck/gkd/releases) 获取最新预编译安装包：
+请前往 [Releases 页面](https://github.com/lifefuck/gkd-root-keepalive/releases) 获取最新预编译安装包：
 - **`GKD_Root_KeepAlive_v1.12.1.apk`**
 
 > **注意**：首次安装或运行后，请授予应用 Root 权限，应用将自动完成底层常驻防护与权限配置。
