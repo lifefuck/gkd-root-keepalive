@@ -1,93 +1,54 @@
-# GKD (Root Zero-Polling KeepAlive Fork)
+# GKD (Root Zero-Polling KeepAlive)
 
-> **本项目为 GKD 的深度保活定制分支**  
-> **修改者**：life  
-> **核心改进**：基于 Root 权限实现真正的底层无感常驻、零轮询深度休眠保活，开机与后台防杀自提权，彻底告别 Android 系统的无障碍意外断开与频繁弹窗。  
-> **发行版与下载**：编译完成的安装包已统一打 Tag 发布于 [Releases 页面](https://github.com/lifefuck/gkd/releases)（当前稳定版本为 **`v1.12.1-keepalive`**），可直接点击 Tag 下载 APK。
+> **本项目为 GKD 官方项目 (gkd-kit/gkd) 的深度保活定制分支**  
+> **分支维护者**：life  
+> **基座版本**：GKD 官方最新发行版 v1.12.1  
+> **下载地址**：可在本仓库的 [Releases 页面](https://github.com/lifefuck/gkd/releases) 直接下载打包完成的 APK 安装包（**`v1.12.1-keepalive`**）。
 
 ---
 
-# gkd
+## 💡 为什么需要本项目？
 
-<p align="center">
-<a href="https://gkd.li/"><img src="https://e.gkd.li/2a0a7787-f2dd-4529-a885-93f3b8c857c3" alt="GKD.LI" width="40%" /></a>
-</p>
+在原生 Android 以及各大厂商定制系统（小米 HyperOS/MIUI、vivo OriginOS、OPPO ColorOS、华为鸿蒙等）上，原版 GKD 的无障碍服务经常面临以下痛点：
+1. **频繁被杀**：系统在内存紧张时触发 LowMemoryKiller (LMK) 强制回收无障碍进程；
+2. **死循环轮询耗电**：常规保活方案依赖 `while(true)` 频繁唤醒 CPU，导致手机异常发热、无法进入深度睡眠（Deep Sleep）；
+3. **权限意外丢失**：系统更新或智能省电经常重置无障碍授权，需要反复手动开启或连接电脑授权。
 
-基于 [高级选择器](https://gkd.li/guide/selector) + [订阅规则](https://gkd.li/guide/subscription) + [快照审查](https://github.com/gkd-kit/inspect) 的自定义屏幕点击 Android 应用
+本项目通过深度整合 **Root 底层能力**，实现了真正的**零额外能耗、零死循环轮询、常驻免查杀**。
 
-通过自定义规则，在指定界面，满足指定条件(如屏幕上存在特定文字)时，点击特定的节点或位置或执行其他操作
+---
 
-- **快捷操作**
+## ⚡ 核心功能与技术实现
 
-  帮助你简化一些重复的流程, 如某些软件自动确认电脑登录
+### 1. 内核级 OOM -1000 防杀保护
+- 无障碍服务启动连接（`onServiceConnected`）后，通过底层 Root 权限直接将当前应用进程的 `oom_score_adj` 设置为 **`-1000`**。
+- 由 Linux 内核底层直接豁免，进程优先级提升至系统级核心守护进程级别，在内存极度紧张时绝对免遭系统杀后台。
+- **纯内核机制维护，0 额外 CPU 占用，0 耗电**。
 
-- **跳过流程**
+### 2. 纯事件驱动保活（杜绝死循环）
+- 坚决杜绝死循环后台轮询，不常驻 CPU 唤醒锁。
+- 引入 `A11yKeepAliveReceiver`，仅在系统关键生命周期事件（如亮屏、解锁、用户呈现 `ACTION_USER_PRESENT`）时单次触发状态检查；若检测到系统意外关闭无障碍，立即通过底层静默重新激活，息屏时保持 100% 深度休眠。
 
-  某些软件可能在启动时存在一些烦人的流程, 这个软件可以帮助你点击跳过这个流程
+### 3. 免电脑一键静默授权
+- 启动时自动通过 Root 静默授予 `WRITE_SECURE_SETTINGS` 权限；
+- 自动加入系统电池优化白名单（Doze 模式豁免）；
+- 自动解除系统的后台运行限制（AppOps），无需再连电脑通过 ADB 手动敲命令。
 
-## 免责声明
+### 4. 完整保留官方高级功能
+- 100% 完整继承 GKD 官方高级选择器、第三方规则订阅、规则调试与快照审查功能。
 
-**本项目遵循 [GPL-3.0-only](/LICENSE) 开源，项目仅供学习交流，禁止用于商业或非法用途**
+---
 
-## 安装
+## 📦 下载与安装
 
-<a href="https://gkd.li/guide/"><img src="https://e.gkd.li/f23b704d-d781-494b-9719-393f95683b89" alt="Download from GKD.LI" width="32%" /></a><a href="https://play.google.com/store/apps/details?id=li.songe.gkd"><img src="https://e.gkd.li/f63fabeb-0342-4961-a46d-cac61b0f8856" alt="Download from Google Play" width="32%" /></a><a href="https://github.com/gkd-kit/gkd/releases"><img src="https://e.gkd.li/c1ef2bb9-7472-46d5-9806-81b4c37e5b4d" alt="Download from GitHub releases" width="32%" /></a>
+请前往 [Releases 页面](https://github.com/lifefuck/gkd/releases) 获取最新预编译安装包：
+- **`GKD_Root_KeepAlive_v1.12.1.apk`**
 
-如遇问题请先查看 [疑难解答](https://gkd.li/guide/faq)
+> **注意**：首次安装或运行后，请授予应用 Root 权限，应用将自动完成底层常驻防护与权限配置。
 
-## 截图
+---
 
-|                                                               |                                                               |                                                               |                                                               |
-| ------------------------------------------------------------- | ------------------------------------------------------------- | ------------------------------------------------------------- | ------------------------------------------------------------- |
-| ![img](https://e.gkd.li/1e8934c1-2303-4182-9ef2-ad4c46882570) | ![img](https://e.gkd.li/01f230d7-9b89-4314-b573-38bd233d22f9) | ![img](https://e.gkd.li/dfa0a782-b21e-473a-96e4-eef27773b71b) | ![img](https://e.gkd.li/641decd1-2e60-4e95-b78c-df38d1d98a4d) |
-| ![img](https://e.gkd.li/b216b703-d3de-4798-81ba-29e0ae63264f) | ![img](https://e.gkd.li/76c25ac9-4189-47cd-b40b-b9e72c79b584) | ![img](https://e.gkd.li/7288502e-808b-4d9a-88b5-1085abaa0d46) | ![img](https://e.gkd.li/aa974940-7773-409a-ae84-3c02fee9c770) |
+## 📄 开源与免责声明
 
-## 订阅
-
-GKD **默认不提供规则**，需自行添加本地规则，或者通过订阅链接的方式获取远程规则
-
-也可通过 [subscription-template](https://github.com/gkd-kit/subscription-template) 快速构建自己的远程订阅
-
-第三方订阅列表可在 <https://github.com/topics/gkd-subscription> 查看
-
-要加入此列表, 需点击仓库主页右上角设置图标后在 Topics 中添加 `gkd-subscription`
-
-<details>
-<summary>示例图片 - 添加至 Topics (点击展开)</summary>
-
-![image](https://e.gkd.li/9e340459-254f-4ca0-8a44-cc823069e5a7)
-
-</details>
-
-## 选择器
-
-一个类似 CSS 选择器的选择器, 能联系节点上下文信息, 更容易也更精确找到目标节点
-
-<https://gkd.li/guide/selector>
-
-[@[vid=\"menu\"] < [vid=\"menu_container\"] - [vid=\"dot_text_layout\"] > [text^=\"广告\"]](https://i.gkd.li/i/14881985?gkd=QFt2aWQ9Im1lbnUiXSA8IFt2aWQ9Im1lbnVfY29udGFpbmVyIl0gLSBbdmlkPSJkb3RfdGV4dF9sYXlvdXQiXSA-IFt0ZXh0Xj0i5bm_5ZGKIl0)
-
-<details>
-<summary>示例图片 - 选择器路径视图 (点击展开)</summary>
-
-[![image](https://e.gkd.li/a2ae667b-b8c5-4556-a816-37743347b972)](https://i.gkd.li/i/14881985?gkd=QFt2aWQ9Im1lbnUiXSA8IFt2aWQ9Im1lbnVfY29udGFpbmVyIl0gLSBbdmlkPSJkb3RfdGV4dF9sYXlvdXQiXSA-IFt0ZXh0Xj0i5bm_5ZGKIl0)
-
-</details>
-
-## 衍生
-
-开发过程中的衍生项目，它们正在被 gkd 使用，也许对你有帮助
-
-- [kotlin-json5](https://github.com/lisonge/kotlin-json5)
-- [kotlin-codeorigin](https://github.com/lisonge/kotlin-codeorigin)
-- [android-api-diff](https://github.com/android-cs/android-api-diff)
-- [remap](https://github.com/lisonge/remap)
-- [priv-kit](https://github.com/priv-kit/priv-kit)
-
-## 捐赠
-
-如果 GKD 对你有用, 可以通过以下链接支持该项目
-
-<https://github.com/lisonge/sponsor>
-
-或前往 [Google Play](https://play.google.com/store/apps/details?id=li.songe.gkd) 给个好评
+- 本项目基于 [gkd-kit/gkd](https://github.com/gkd-kit/gkd) 二次开发，严格遵循 **[GPL-3.0-only](LICENSE)** 开源协议。
+- 本项目仅供个人学习、自动化体验与技术探索使用，请勿用于非法用途。
