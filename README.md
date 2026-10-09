@@ -1,3 +1,12 @@
+# GKD (Root Zero-Polling KeepAlive Fork)
+
+> **本项目为 GKD 的深度保活定制分支**  
+> **修改者**：life  
+> **核心改进**：基于 Root 权限实现真正的底层无感常驻、零轮询深度休眠保活，开机与后台防杀自提权，彻底告别 Android 系统的无障碍意外断开与频繁弹窗。  
+> **发行版与下载**：编译完成的安装包已统一打 Tag 发布于 [Releases 页面](https://github.com/lifefuck/gkd-root-keepalive/releases)（当前稳定版本为 **`v1.12.1-keepalive`**），可直接点击 Tag 下载 APK。
+
+---
+
 # gkd
 
 <p align="center">
