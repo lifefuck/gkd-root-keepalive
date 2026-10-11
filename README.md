@@ -1,54 +1,46 @@
-# GKD (Root Zero-Polling KeepAlive)
+# GKD (Root KeepAlive 定制分支)
 
-> **本项目为 GKD 官方项目 (gkd-kit/gkd) 的深度保活定制分支**  
-> **分支维护者**：life  
-> **基座版本**：GKD 官方最新发行版 v1.12.1  
-> **下载地址**：可在本仓库的 [Releases 页面](https://github.com/lifefuck/gkd-root-keepalive/releases) 直接下载打包完成的 APK 安装包（**`v1.12.1-keepalive`**）。
-
----
-
-## 💡 为什么需要本项目？
-
-在原生 Android 以及各大厂商定制系统（小米 HyperOS/MIUI、vivo OriginOS、OPPO ColorOS、华为鸿蒙等）上，原版 GKD 的无障碍服务经常面临以下痛点：
-1. **频繁被杀**：系统在内存紧张时触发 LowMemoryKiller (LMK) 强制回收无障碍进程；
-2. **死循环轮询耗电**：常规保活方案依赖 `while(true)` 频繁唤醒 CPU，导致手机异常发热、无法进入深度睡眠（Deep Sleep）；
-3. **权限意外丢失**：系统更新或智能省电经常重置无障碍授权，需要反复手动开启或连接电脑授权。
-
-本项目通过深度整合 **Root 底层能力**，实现了真正的**零额外能耗、零死循环轮询、常驻免查杀**。
+> 基于 GKD 官方项目 ([gkd-kit/gkd](https://github.com/gkd-kit/gkd)) v1.12.1 二次开发的无障碍深度保活分支。  
+> 维护者：**life**  
+> 产物下载：[GitHub Releases](https://github.com/lifefuck/gkd-root-keepalive/releases)（已签名 APK：`GKD_Root_KeepAlive_v1.12.1.apk`）
 
 ---
 
-## ⚡ 核心功能与技术实现
+## 解决的问题
 
-### 1. 内核级 OOM -1000 防杀保护
-- 无障碍服务启动连接（`onServiceConnected`）后，通过底层 Root 权限直接将当前应用进程的 `oom_score_adj` 设置为 **`-1000`**。
-- 由 Linux 内核底层直接豁免，进程优先级提升至系统级核心守护进程级别，在内存极度紧张时绝对免遭系统杀后台。
-- **纯内核机制维护，0 额外 CPU 占用，0 耗电**。
-
-### 2. 纯事件驱动保活（杜绝死循环）
-- 坚决杜绝死循环后台轮询，不常驻 CPU 唤醒锁。
-- 引入 `A11yKeepAliveReceiver`，仅在系统关键生命周期事件（如亮屏、解锁、用户呈现 `ACTION_USER_PRESENT`）时单次触发状态检查；若检测到系统意外关闭无障碍，立即通过底层静默重新激活，息屏时保持 100% 深度休眠。
-
-### 3. 免电脑一键静默授权
-- 启动时自动通过 Root 静默授予 `WRITE_SECURE_SETTINGS` 权限；
-- 自动加入系统电池优化白名单（Doze 模式豁免）；
-- 自动解除系统的后台运行限制（AppOps），无需再连电脑通过 ADB 手动敲命令。
-
-### 4. 完整保留官方高级功能
-- 100% 完整继承 GKD 官方高级选择器、第三方规则订阅、规则调试与快照审查功能。
+在 HyperOS / MIUI、OriginOS、ColorOS 等厂商系统上，原生 GKD 无障碍服务容易出现两类问题：
+1. **被系统强杀**：内存紧张时系统 LMK (LowMemoryKiller) 会直接干掉无障碍进程；
+2. **常规保活耗电严重**：传统的死循环轮询或常驻 WakeLock 导致 CPU 无法进入深度休眠，机身发热、异常掉电。
 
 ---
 
-## 📦 下载与安装
+## 核心机制
 
-请前往 [Releases 页面](https://github.com/lifefuck/gkd-root-keepalive/releases) 获取最新预编译安装包：
-- **`GKD_Root_KeepAlive_v1.12.1.apk`**
+### 1. 内核级 OOM -1000 免疫
+- 无障碍服务启动连接（`onServiceConnected`）后，通过底层 Root 权限将应用进程的 `oom_score_adj` 直接置为 **`-1000`**。
+- 提权至系统核心守护进程级别，内核层面豁免查杀。纯内核机制维护，0 额外 CPU 占用。
 
-> **注意**：首次安装或运行后，请授予应用 Root 权限，应用将自动完成底层常驻防护与权限配置。
+### 2. 事件驱动保活（无死循环轮询）
+- 不常驻 CPU 唤醒锁，不跑后台死循环。
+- 通过 `A11yKeepAliveReceiver` 监听亮屏与用户解锁事件（`ACTION_USER_PRESENT`），仅在触发时执行单次状态检查；若发现无障碍被系统误关则静默重新拉起，息屏期间手机 100% 正常深度休眠。
+
+### 3. Root 静默授权
+- 启动自动通过 Root 授予 `WRITE_SECURE_SETTINGS` 权限；
+- 自动加入系统电池优化白名单与解除后台 AppOps 限制，无需电脑 ADB 调试授权。
+
+### 4. 完整继承官方功能
+- 完整保留官方规则订阅、高级选择器、规则调试与快照审查功能，不破坏原有业务逻辑。
 
 ---
 
-## 📄 开源与免责声明
+## 安装说明
 
-- 本项目基于 [gkd-kit/gkd](https://github.com/gkd-kit/gkd) 二次开发，严格遵循 **[GPL-3.0-only](LICENSE)** 开源协议。
-- 本项目仅供个人学习、自动化体验与技术探索使用，请勿用于非法用途。
+1. 前往 [Releases 页面](https://github.com/lifefuck/gkd-root-keepalive/releases) 下载最新 APK 安装；
+2. 首次打开应用请授予 Root 权限，应用会自动配置底层防护策略与安全设置。
+
+---
+
+## 协议与署名
+
+- 本项目基于 [gkd-kit/gkd](https://github.com/gkd-kit/gkd) 定制，遵循 **GPL-3.0** 开源协议。
+- 定制分支维护：**life**
